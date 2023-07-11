@@ -1,5 +1,6 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
+from main_joblist_app.models import CustomUser
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework import serializers
@@ -18,13 +19,12 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required = True, validators=[UniqueValidator(queryset=User.objects.all(), message={"error": "Email already exists."})])
-    username = serializers.CharField(required = True, validators=[UniqueValidator(queryset=User.objects.all(), message={"error": "Username already exists."})])
+    email = serializers.EmailField(required = True, validators=[UniqueValidator(queryset=CustomUser.objects.all(), message={"error": "Email already exists."})])
     password = serializers.CharField(write_only=True, required=True)
     password2 = serializers.CharField(write_only=True, required=True)
         
     class Meta:
-        model = User
+        model = CustomUser
         fields = '__all__'
 
         
@@ -38,15 +38,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         
-        user = User(
+        user = CustomUser.objects.create_user(
             email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
+            password=validated_data['password']
         )
+
+        # user = CustomUser(
+        #     email=validated_data['email'],
+        #     username=validated_data['username'],
+        #     first_name=validated_data['first_name'],
+        #     last_name=validated_data['last_name'],
+        # )
         
-        user.set_password(validated_data['password'])
-        user.save()
+        # user.set_password(validated_data['password'])
+        # user.save()
                 
         return user
 
